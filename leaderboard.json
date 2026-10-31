@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Kartik kohli",
+    "time": 6494,
+    "accuracy": 100,
+    "perfectHits": 3,
+    "date": "2026-10-30"
+  },
+  {
+    "name": "Ishansh Sharma",
+    "time": 6510,
+    "accuracy": 100,
+    "perfectHits": 2,
+    "date": "2026-10-30"
+  },
+  {
+    "name": "Somansh Sharma",
+    "time": 6516,
+    "accuracy": 100,
+    "perfectHits": 4,
+    "date": "2026-10-30"
+  },
+  {
+    "name": "Somansh Sharma",
+    "time": 11310,
+    "accuracy": 86,
+    "perfectHits": 2,
+    "date": "2026-10-30"
+  },
+  {
+    "name": "BOT-TITAN (RPA Alpha)",
+    "time": 15420,
+    "accuracy": 100,
+    "perfectHits": 6,
+    "date": "2026-10-25"
+  },
+  {
+    "name": "Somansh Sharma",
+    "time": 15740,
+    "accuracy": 75,
+    "perfectHits": 3,
+    "date": "2026-10-30"
+  },
+  {
+    "name": "atharva",
+    "time": 16515,
+    "accuracy": 67,
+    "perfectHits": 2,
+    "date": "2026-10-30"
+  },
+  {
+    "name": "Max V. (Red Bull Sim)",
+    "time": 17850,
+    "accuracy": 92,
+    "perfectHits": 5,
+    "date": "2026-10-26"
+  },
+  {
+    "name": "Lando Wrench (McLaren)",
+    "time": 19940,
+    "accuracy": 88,
+    "perfectHits": 4,
+    "date": "2026-10-28"
+  },
+  {
+    "name": "Cyber Mech #44",
+    "time": 23150,
+    "accuracy": 83,
+    "perfectHits": 3,
+    "date": "2026-10-29"
+  },
+  {
+    "name": "Pit Academy Rookie",
+    "time": 31200,
+    "accuracy": 71,
+    "perfectHits": 2,
+    "date": "2026-10-30"
+  },
+  {
+    "name": "Somansh Sharma",
+    "time": 34093,
+    "accuracy": 46,
+    "perfectHits": 3,
+    "date": "2026-10-30"
+  }
+]

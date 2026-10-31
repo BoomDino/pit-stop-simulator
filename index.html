@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPA Pit Stop: Precision Under Pressure | Sci-Fi Anti-Gravity Simulation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app-viewport">
+
+    <!-- Top Telemetry Minimal Strip -->
+    <header class="top-telemetry-strip">
+      <div class="brand-telemetry-tag">
+        <div class="brand-badge">RPA · ZERO-G</div>
+        <div class="brand-text">F1 PIT STOP <span>PRECISION UNDER PRESSURE</span></div>
+      </div>
+      <div class="top-strip-actions">
+        <button id="btn-reset-game" class="btn-cyber-header" title="Reset Current Pit Stop (or Press R)">
+          🔄 <span class="lbl">Reset Run</span>
+        </button>
+        <button id="btn-mute-toggle" class="btn-cyber-header" title="Toggle Sound FX">
+          🔊 <span class="lbl">Sound ON</span>
+        </button>
+        <button id="btn-view-leaderboard" class="btn-cyber-header">
+          🏆 <span class="lbl">Leaderboard</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Full-Frame 16:9 Cockpit Grid -->
+    <main class="cockpit-grid-169">
+
+      <!-- 1. Left Column: Telemetry System v5.0 -->
+      <aside class="cyber-hud-panel">
+        <div class="telemetry-title-block">
+          <h2>F1 PIT STOP CHALLENGE</h2>
+          <div class="sub">TELEMETRY SYSTEM v5.0</div>
+        </div>
+
+        <!-- Current Run LED Display -->
+        <div class="current-run-led-box">
+          <div class="current-run-label">CURRENT RUN</div>
+          <div id="hud-timer" class="current-run-digits">00:00.000</div>
+          <div class="current-run-metrics-row">
+            <span>PENALTY: <span id="hud-penalty" class="penalty-glow-red">+0.000s</span></span>
+            <span>ACCURACY: <span id="hud-accuracy" class="accuracy-glow-cyan">100%</span></span>
+          </div>
+        </div>
+
+        <!-- Station Sequence with Sparkline Graphs -->
+        <div class="station-sequence-box">
+          <div class="sequence-header">
+            <span>STATION SEQUENCE</span>
+            <span>STATUS</span>
+          </div>
+          <div id="hud-stage-list" class="stage-list-items">
+            <!-- Dynamically populated by game.js -->
+          </div>
+        </div>
+
+        <!-- RPA Assist & Mini Visual Logic -->
+        <div class="rpa-logic-module">
+          <div class="rpa-logic-header">
+            <span>RPA ASSIST</span>
+            <div class="toggle-switch-wrap">
+              <span>MINI VISUAL LOGIC</span>
+              <div id="btn-assist-toggle" class="switch-pill interactive-control" title="Toggle Autonomous AI Bot"></div>
+            </div>
+          </div>
+          <div class="code-algorithm-box">
+            <span class="kw">WHEN</span> <span class="fn">car_spawns</span>() <br>
+            <span class="arr">↳</span> <span class="fn">ENGAGE_JACK_FRONT</span>
+          </div>
+        </div>
+
+        <!-- Reset Button -->
+        <button id="btn-hud-reset" class="btn-cyber-reset interactive-control" title="Abort & Restart from Stage 1 (Key: R)">
+          🔄 RESET PIT STOP
+        </button>
+
+        <!-- Player Stats Footer -->
+        <div class="hud-footer-stats">
+          <span>STREAK: <b>2X</b></span>
+          <span>TOTAL XP: <b>14,350</b></span>
+          <span>TOTAL AP: <b>42%</b></span>
+          <span>STABILITY: <b style="color:var(--rpa-green)">98%</b></span>
+        </div>
+      </aside>
+
+      <!-- 2. Center Column: Anti-Gravity Pit Lane Bay -->
+      <section class="center-bay-panel">
+        <div id="pit-lane-arena" class="hangar-bay-viewport">
+          <div class="hangar-floor-grates"></div>
+          <div class="hangar-hazard-strip-top"></div>
+          <div class="hangar-hazard-strip-bottom"></div>
+          <div class="floor-vent-recess"></div>
+
+          <!-- Particles & Sparks Layer -->
+          <canvas id="particle-canvas"></canvas>
+
+          <!-- Top-Right Autonomous Lock Badge -->
+          <div id="assist-active-banner" class="rpa-lock-pill">
+            <div class="rpa-lock-dot"></div>
+            <span>RPA AGENT AUTONOMOUS LOCK</span>
+          </div>
+
+          <!-- Floating Holographic Banners -->
+          <div class="hologram-strike-banner holo-fl">PERFECT STRIKE!</div>
+          <div class="hologram-strike-banner holo-rr">PERFECT STRIKE!</div>
+
+          <!-- Hit and Penalty Alerts -->
+          <div id="hit-feedback-banner" class="hit-banner"></div>
+          <div id="penalty-alert-banner" class="penalty-banner"></div>
+
+          <!-- Pulsing Cyan Magnetic Dock Pads (Under Wheels) -->
+          <div class="mag-dock-pad mag-pad-fl"></div>
+          <div class="mag-dock-pad mag-pad-fr"></div>
+          <div class="mag-dock-pad mag-pad-rl"></div>
+          <div class="mag-dock-pad mag-pad-rr"></div>
+
+          <!-- Suspended Anti-Gravity F1 Car Container -->
+          <div id="f1-car-container" class="anti-gravity-car-container car-container">
+            <div class="car-shadow"></div>
+
+            <!-- Plasma Thruster Jet Flare at Rear Exhaust -->
+            <div class="plasma-thruster-exhaust"></div>
+
+            <!-- Articulated Robotic Side Servos / Clamp Arms -->
+            <div class="robotic-side-arm robotic-side-arm-left">
+              <svg width="70" height="36" viewBox="0 0 70 36">
+                <path d="M 0 18 L 35 18 L 65 30" stroke="#334460" stroke-width="4" fill="none"/>
+                <circle cx="35" cy="18" r="5" fill="#00e5ff"/>
+                <rect x="58" y="24" width="10" height="10" rx="2" fill="#00ff88"/>
+              </svg>
+            </div>
+            <div class="robotic-side-arm robotic-side-arm-right">
+              <svg width="70" height="36" viewBox="0 0 70 36">
+                <path d="M 70 18 L 35 18 L 5 30" stroke="#334460" stroke-width="4" fill="none"/>
+                <circle cx="35" cy="18" r="5" fill="#00e5ff"/>
+                <rect x="2" y="24" width="10" height="10" rx="2" fill="#00ff88"/>
+              </svg>
+            </div>
+
+            <!-- Space-Suited Pit Crew Avatars Around Wheels -->
+            <div class="space-pit-crew crew-front-jack" title="Front Magnetic Jack Mechanic">🛠️</div>
+            <div class="space-pit-crew crew-rear-jack" title="Rear Magnetic Jack Mechanic">🛠️</div>
+            <div class="space-pit-crew crew-fl" title="Front Left Gunner">🔧</div>
+            <div class="space-pit-crew crew-fr" title="Front Right Gunner">🔧</div>
+            <div class="space-pit-crew crew-rl" title="Rear Left Gunner">🔧</div>
+            <div class="space-pit-crew crew-rr" title="Rear Right Gunner">🔧</div>
+
+            <!-- Front & Rear Jack Visual Indicators -->
+            <div id="jack-front-indicator" class="jack-indicator jack-front">F-MAG</div>
+            <div id="jack-rear-indicator" class="jack-indicator jack-rear">R-MAG</div>
+
+            <!-- 6 Interactive Stations positioned on car -->
+            <div id="station-front-jack" class="pit-station station-1"><div class="station-reticle"></div></div>
+            <div id="station-tyre-fl" class="pit-station station-2"><div class="station-reticle"></div></div>
+            <div id="station-tyre-fr" class="pit-station station-3"><div class="station-reticle"></div></div>
+            <div id="station-tyre-rl" class="pit-station station-4"><div class="station-reticle"></div></div>
+            <div id="station-tyre-rr" class="pit-station station-5"><div class="station-reticle"></div></div>
+            <div id="station-rear-jack" class="pit-station station-6"><div class="station-reticle"></div></div>
+
+            <!-- High-Gloss Shaded Top-Down F1 Car SVG -->
+            <svg class="f1-car-svg" viewBox="0 0 320 480" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="carbonGlossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#1e2430"/>
+                  <stop offset="35%" stop-color="#0c1018"/>
+                  <stop offset="70%" stop-color="#141924"/>
+                  <stop offset="100%" stop-color="#07090e"/>
+                </linearGradient>
+
+                <linearGradient id="neonRedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#e10600"/>
+                  <stop offset="50%" stop-color="#ff3322"/>
+                  <stop offset="100%" stop-color="#e10600"/>
+                </linearGradient>
+
+                <radialGradient id="haloCockpit" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#2a354a"/>
+                  <stop offset="100%" stop-color="#090d14"/>
+                </radialGradient>
+              </defs>
+
+              <!-- Suspension Wishbones -->
+              <line x1="80" y1="130" x2="140" y2="145" stroke="#3d4a63" stroke-width="3"/>
+              <line x1="80" y1="150" x2="140" y2="155" stroke="#3d4a63" stroke-width="3"/>
+              <line x1="240" y1="130" x2="180" y2="145" stroke="#3d4a63" stroke-width="3"/>
+              <line x1="240" y1="150" x2="180" y2="155" stroke="#3d4a63" stroke-width="3"/>
+              <line x1="75" y1="365" x2="135" y2="355" stroke="#3d4a63" stroke-width="3.5"/>
+              <line x1="75" y1="385" x2="135" y2="380" stroke="#3d4a63" stroke-width="3.5"/>
+              <line x1="245" y1="365" x2="185" y2="355" stroke="#3d4a63" stroke-width="3.5"/>
+              <line x1="245" y1="385" x2="185" y2="380" stroke="#3d4a63" stroke-width="3.5"/>
+
+              <!-- 4 Formula 1 Slick Tyres -->
+              <g id="wheel-fl" class="car-wheel">
+                <rect x="52" y="110" width="34" height="64" rx="6" fill="#181d26" stroke="#2c3547" stroke-width="2"/>
+                <line x1="56" y1="142" x2="82" y2="142" stroke="#ff2200" stroke-width="2"/>
+                <circle cx="69" cy="142" r="14" fill="#0d1118" stroke="#ff2200" stroke-width="2" class="tyre-compound"/>
+                <circle cx="69" cy="142" r="4" fill="#ffcc00"/>
+              </g>
+
+              <g id="wheel-fr" class="car-wheel">
+                <rect x="234" y="110" width="34" height="64" rx="6" fill="#181d26" stroke="#2c3547" stroke-width="2"/>
+                <line x1="238" y1="142" x2="264" y2="142" stroke="#ff2200" stroke-width="2"/>
+                <circle cx="251" cy="142" r="14" fill="#0d1118" stroke="#ff2200" stroke-width="2" class="tyre-compound"/>
+                <circle cx="251" cy="142" r="4" fill="#ffcc00"/>
+              </g>
+
+              <g id="wheel-rl" class="car-wheel">
+                <rect x="46" y="340" width="40" height="74" rx="7" fill="#181d26" stroke="#2c3547" stroke-width="2"/>
+                <line x1="50" y1="377" x2="82" y2="377" stroke="#ff2200" stroke-width="2"/>
+                <circle cx="66" cy="377" r="16" fill="#0d1118" stroke="#ff2200" stroke-width="2" class="tyre-compound"/>
+                <circle cx="66" cy="377" r="4" fill="#ffcc00"/>
+              </g>
+
+              <g id="wheel-rr" class="car-wheel">
+                <rect x="234" y="340" width="40" height="74" rx="7" fill="#181d26" stroke="#2c3547" stroke-width="2"/>
+                <line x1="238" y1="377" x2="270" y2="377" stroke="#ff2200" stroke-width="2"/>
+                <circle cx="254" cy="377" r="16" fill="#0d1118" stroke="#ff2200" stroke-width="2" class="tyre-compound"/>
+                <circle cx="254" cy="377" r="4" fill="#ffcc00"/>
+              </g>
+
+              <!-- Front Wing & Aero Elements -->
+              <rect x="65" y="42" width="190" height="18" rx="3" fill="#141a24" stroke="#334259" stroke-width="1.5"/>
+              <rect x="75" y="46" width="170" height="6" fill="#e10600"/>
+              <rect x="58" y="36" width="10" height="30" rx="2" fill="#e10600"/>
+              <rect x="252" y="36" width="10" height="30" rx="2" fill="#e10600"/>
+
+              <!-- Main Aerodynamic Chassis -->
+              <path d="M 160 52 
+                       L 174 135 
+                       L 186 185 
+                       L 215 220 
+                       L 218 310 
+                       L 195 365 
+                       L 190 420 
+                       L 130 420 
+                       L 125 365 
+                       L 102 310 
+                       L 105 220 
+                       L 134 185 
+                       L 146 135 Z" 
+                    fill="url(#carbonGlossGrad)" stroke="#37455d" stroke-width="2"/>
+
+              <!-- High-Contrast Red Livery -->
+              <path d="M 160 56 L 168 135 L 175 190 L 160 215 L 145 190 L 152 135 Z" fill="url(#neonRedGrad)"/>
+              <polygon points="110,240 130,235 125,300 108,290" fill="#e10600"/>
+              <polygon points="210,240 190,235 195,300 212,290" fill="#e10600"/>
+
+              <!-- Sidepod Coolers with Neon Cyan Glow -->
+              <rect x="110" y="222" width="16" height="5" rx="1" fill="#00e5ff" filter="drop-shadow(0 0 4px #00e5ff)"/>
+              <rect x="194" y="222" width="16" height="5" rx="1" fill="#00e5ff" filter="drop-shadow(0 0 4px #00e5ff)"/>
+
+              <!-- Cockpit Halo & Driver Helmet -->
+              <ellipse cx="160" cy="225" rx="22" ry="32" fill="url(#haloCockpit)" stroke="#4e5e7e" stroke-width="2"/>
+              <line x1="160" y1="195" x2="160" y2="218" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+              <path d="M 142 225 C 142 205, 178 205, 178 225" stroke="#ffffff" stroke-width="3" fill="none"/>
+              <circle cx="160" cy="235" r="10" fill="#ffcc00" stroke="#000" stroke-width="1.5"/>
+              <rect x="153" y="228" width="14" height="4" rx="1" fill="#111"/>
+
+              <!-- Shark Fin & Rear Wing -->
+              <polygon points="156,260 164,260 162,350 158,350" fill="#e10600"/>
+              <rect x="90" y="420" width="140" height="22" rx="3" fill="#141a24" stroke="#334259" stroke-width="2"/>
+              <rect x="96" y="424" width="128" height="6" fill="#e10600"/>
+              <rect x="84" y="414" width="8" height="34" rx="2" fill="#ffcc00"/>
+              <rect x="228" y="414" width="8" height="34" rx="2" fill="#ffcc00"/>
+              <circle cx="160" cy="415" r="4" fill="#00e5ff" filter="drop-shadow(0 0 6px #00e5ff)"/>
+            </svg>
+          </div>
+
+          <!-- Bottom-Left Overlay: "EQUIPMENT LOGISTICS" -->
+          <div class="equipment-logistics-card">
+            <div class="logistics-card-title">EQUIPMENT LOGISTICS</div>
+            <div class="logistics-row">
+              <div class="torque-adjust-box">
+                <span class="lbl">TORQUE ADJUST</span>
+                <input type="range" min="300" max="600" value="460" class="cyber-slider" id="slider-torque">
+                <span class="lbl" style="color:var(--rpa-cyan); font-weight:700;">460 Nm (SYNCED)</span>
+              </div>
+              <div class="tyre-heat-dial" title="Pre-Heating Soft Compounds">
+                <span class="sub-lbl">TYRE PRE-HEAT</span>
+                <span class="heat-val">98°C</span>
+              </div>
+            </div>
+            <!-- Interactive Tap 'E' Cross-Thread Alert -->
+            <div id="btn-fix-jam" class="cross-thread-alert-box interactive-control" title="Press 'E' or Click to rapid-clear jammed wheel nuts!">
+              <span>⚠️</span>
+              <div>
+                <strong>CROSS-THREAD ALERT</strong><br>
+                <span>(Tap 'E' rapidly to fix jammed nut!)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Start Game Overlay Splash -->
+          <div id="start-overlay" class="start-overlay">
+            <div class="brand-badge">FORMULA 1 · ZERO-G PIT STOP</div>
+            <h1 class="splash-title" style="font-size:28px; margin-top:10px;">RPA PIT STOP:<br><span style="color:var(--f1-gold)">PRECISION UNDER PRESSURE</span></h1>
+            <p class="splash-subtitle" style="font-size:12px; color:var(--text-muted); max-width:400px; margin-top:6px;">
+              Anti-gravity pit lane bay active. Execute 6 consecutive precision skill checks to clear all stations and release car.
+            </p>
+            <button id="btn-start-game" class="btn-start-hero">
+              🏎️ INITIATE PIT STOP
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Deck: 3D Tachometer Timing Gauge -->
+        <div class="bottom-timing-deck">
+          <div class="timing-desc-block">
+            <div id="hud-current-stage" class="stage-badge-glowing">STAGE 1/6: DOCK IN (FRONT JACK)</div>
+            <div class="stage-instruction-text">
+              Time your strike exactly as the rotating needle passes through <strong style="color:var(--rpa-green)">PERFECT</strong>.
+            </div>
+            <div class="strike-key-hint-pill">
+              <span class="keycap">SPACE</span> or <span class="keycap">CLICK</span> to Strike
+            </div>
+          </div>
+
+          <!-- 3D Tachometer Circular Gauge -->
+          <div id="precision-dial" class="tachometer-3d-wrapper" title="Click or Press Spacebar!">
+            <div class="tachometer-bezel"></div>
+            <!-- Ultra-Clean SVG Gauge Arc -->
+            <svg class="tachometer-svg-arc" viewBox="0 0 170 170">
+              <circle cx="85" cy="85" r="66" class="tacho-track" />
+              <circle id="dial-svg-green-arc" cx="85" cy="85" r="66" class="tacho-green-arc" />
+              <line id="dial-svg-perfect-line" x1="85" y1="10" x2="85" y2="28" class="tacho-perfect-tick" />
+            </svg>
+            <!-- Spinning Golden Needle -->
+            <div id="dial-needle" class="tachometer-needle-arm">
+              <div class="tacho-needle-pointer"></div>
+            </div>
+            <!-- Central Strike Button -->
+            <button id="btn-strike-action" class="btn-strike-tacho interactive-control">
+              STRIKE
+              <span class="btn-sub">LOCK</span>
+            </button>
+            <div class="ready-to-strike-pill">READY TO STRIKE</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Right Column: TELEMETRY & LEADERBOARD -->
+      <aside class="telemetry-leaderboard-panel">
+        <div class="right-panel-header">TELEMETRY &amp; LEADERBOARD</div>
+
+        <!-- Live Waveform Diagnostics -->
+        <div class="waveform-section">
+          <div class="waveform-card">
+            <div class="graph-lbl">
+              <span>Reaction Time Milliseconds</span>
+              <span style="color:var(--rpa-cyan)" id="live-rx-time">42ms</span>
+            </div>
+            <canvas id="canvas-rx-graph" class="waveform-canvas" width="300" height="48"></canvas>
+          </div>
+          <div class="waveform-card">
+            <div class="graph-lbl">
+              <span>Resin / Pneumatic Pressure</span>
+              <span style="color:var(--f1-gold)" id="live-psi">118 PSI</span>
+            </div>
+            <canvas id="canvas-torque-graph" class="waveform-canvas" width="300" height="48"></canvas>
+          </div>
+        </div>
+
+        <!-- Live Leaderboard Table -->
+        <div class="live-leaderboard-section">
+          <div class="live-lb-title">LIVE LEADERBOARD</div>
+          <table class="live-lb-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>STUDENT</th>
+                <th>TIME</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-table-body">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+
+        <button id="btn-open-shop" class="right-panel-tab-btn interactive-control">
+          🛠️ CAR CUSTOMIZER / LOGS
+        </button>
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- Results Screen Modal -->
+  <div id="results-modal" class="modal-overlay">
+    <div class="modal-content-card">
+      <div class="modal-header">
+        <h3>🏁 PIT STOP COMPLETED</h3>
+        <button id="btn-modal-close" class="btn-close-x">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="res-time-hero">
+          <div class="lbl">FINAL PIT STOP TIME</div>
+          <div id="res-final-time" class="val">00:18.420</div>
+          <div id="res-record-banner" class="record-badge" style="display:none;">★ NEW PERSONAL BEST ★</div>
+        </div>
+
+        <div id="res-racing-badge" class="racing-badge badge-master">
+          <div class="badge-title">PIT STOP MASTER</div>
+          <div class="badge-sub">Zero-G precision! World-class Formula 1 pit execution.</div>
+        </div>
+
+        <div class="res-stats-grid">
+          <div class="res-stat-card">
+            <span class="lbl">PERFECT HITS</span>
+            <span id="res-perfect" class="val" style="color:var(--rpa-green)">5/6</span>
+          </div>
+          <div class="res-stat-card">
+            <span class="lbl">GOOD HITS</span>
+            <span id="res-good" class="val" style="color:var(--f1-gold)">1</span>
+          </div>
+          <div class="res-stat-card">
+            <span class="lbl">MISSES</span>
+            <span id="res-misses" class="val" style="color:#ff4455">0</span>
+          </div>
+          <div class="res-stat-card">
+            <span class="lbl">ACCURACY</span>
+            <span id="res-accuracy" class="val" style="color:var(--rpa-cyan)">100%</span>
+          </div>
+          <div class="res-stat-card" style="grid-column: span 2;">
+            <span class="lbl">TOTAL PENALTIES</span>
+            <span id="res-penalty" class="val" style="color:#ff8800">+0.000s</span>
+          </div>
+        </div>
+
+        <div class="res-submit-box">
+          <label for="player-name-input">RECORD TIME ON LEADERBOARD</label>
+          <div class="input-row">
+            <input type="text" id="player-name-input" placeholder="Enter student / racer name..." maxlength="20">
+            <button id="btn-submit-score" class="btn-primary">SAVE</button>
+          </div>
+        </div>
+
+        <div class="modal-actions" style="display:flex; justify-content:flex-end;">
+          <button id="btn-retry-game" class="btn-primary">
+            🔄 RETRY PIT STOP
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Full Modal -->
+  <div id="leaderboard-modal" class="modal-overlay">
+    <div class="modal-content-card" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3>🏆 ZERO-G PIT LANE LEADERBOARD</h3>
+        <button id="btn-close-leaderboard" class="btn-close-x">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="leaderboard-table-wrapper" style="max-height:360px; overflow-y:auto;">
+          <table class="leaderboard-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead>
+              <tr style="color:var(--text-muted); border-bottom:1px solid rgba(0,229,255,0.2);">
+                <th>RANK</th>
+                <th>RACER / BOT</th>
+                <th>TIME</th>
+                <th>ACCURACY</th>
+                <th>PERFECT</th>
+                <th>DATE</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-modal-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-actions" style="margin-top: 14px; display:flex; justify-content: space-between;">
+          <button id="btn-clear-leaderboard" class="btn-cyber-header" style="color: #ff5566; border-color: rgba(255,85,102,0.4);" title="Reset leaderboard to default times">
+            🗑️ Reset Leaderboard
+          </button>
+          <button id="btn-close-leaderboard-foot" class="btn-primary" style="padding: 6px 16px; font-size: 11px;">
+            CLOSE
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/rpa-engine.js"></script>
+  <script src="js/game.js"></script>
+
+</body>
+</html>
