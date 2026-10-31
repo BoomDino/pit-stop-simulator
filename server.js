@@ -17,7 +17,7 @@ const { exec } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const BASE_DIR = __dirname;
-const DB_FILE = path.join(BASE_DIR, 'leaderboard.json');
+const DB_FILE = process.env.LEADERBOARD_PATH || path.join(BASE_DIR, 'leaderboard.json');
 
 const DEFAULT_LEADERBOARD = [
   { name: 'BOT-TITAN (RPA Alpha)', time: 15420, accuracy: 100, perfectHits: 6, date: '2026-10-25' },
@@ -63,7 +63,6 @@ const MIME_TYPES = {
 
 const server = http.createServer((req, res) => {
   // Global CORS & JSON headers for API
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -80,23 +79,22 @@ const server = http.createServer((req, res) => {
   // BACKEND REST API ROUTES
   // ==========================================
 
-  // 1. Health & Status Check
-  if (pathname === '/api/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      status: 'ONLINE',
-      system: 'RPA PIT STOP CONTROLLER',
-      version: '4.2.0',
-      uptimeSec: process.uptime(),
-      activeBots: [
-        { id: 'BOT-JACK-F01', role: 'Front Jack Actuator', status: 'READY' },
-        { id: 'BOT-WHEEL-FL', role: 'Front-Left Wheel Gun', status: 'READY' },
-        { id: 'BOT-WHEEL-FR', role: 'Front-Right Wheel Gun', status: 'READY' },
-        { id: 'BOT-WHEEL-RL', role: 'Rear-Left Wheel Gun', status: 'READY' },
-        { id: 'BOT-WHEEL-RR', role: 'Rear-Right Wheel Gun', status: 'READY' },
-        { id: 'BOT-JACK-R02', role: 'Rear Jack & Release', status: 'READY' }
-      ]
-    }));
+  // Same-origin proxy to FastAPI. No UiPath credentials live in this server/browser.
+  if (pathname === '/api/health' || pathname === '/api/uipath/status' ||
+      /^\/api\/uipath\/job\/\d+$/.test(pathname) ||
+      pathname === '/api/pitstop/event' || pathname === '/api/pitstop/logs') {
+    const upstream = http.request({hostname: '127.0.0.1', port: process.env.FASTAPI_PORT || 8000,
+      path: pathname + parsedUrl.search, method: req.method,
+      headers: {'Content-Type': 'application/json'}, timeout: 40000}, response => {
+      res.writeHead(response.statusCode, {'Content-Type': 'application/json'});
+      response.pipe(res);
+    });
+    upstream.on('timeout', () => upstream.destroy());
+    upstream.on('error', () => {
+      if (!res.headersSent) res.writeHead(503, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({detail: 'FastAPI unavailable; game remains playable'}));
+    });
+    req.pipe(upstream);
     return;
   }
 
@@ -104,6 +102,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/telemetry') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
+      simulated: true,
       pneumaticLinePressurePsi: (118 + Math.random() * 4).toFixed(1),
       airGunTorqueNm: 460,
       cvConfidencePct: (99.2 + Math.random() * 0.7).toFixed(2),
@@ -161,19 +160,18 @@ const server = http.createServer((req, res) => {
   // ==========================================
   // FRONTEND STATIC ASSETS (SECURE FILE SERVER)
   // ==========================================
-  let reqPath = decodeURIComponent(pathname);
-  if (reqPath === '/' || reqPath === '') {
-    reqPath = '/index.html';
+  let reqPath;
+  try { reqPath = decodeURIComponent(pathname); }
+  catch (_) { res.writeHead(400); res.end('Invalid path'); return; }
+  if (reqPath === '/') reqPath = '/index.html';
+  // Only public game files; never serve backend/.env, SQLite, .git or source configs.
+  const publicFiles = new Set(['/index.html', '/css/style.css', '/js/audio.js',
+    '/js/particles.js', '/js/leaderboard.js', '/js/rpa-engine.js', '/js/game.js']);
+  const publicAsset = /^\/assets\/[a-zA-Z0-9_-]+\.(png|jpg|jpeg|svg|ico)$/.test(reqPath);
+  if (!publicFiles.has(reqPath) && !publicAsset) {
+    res.writeHead(404); res.end('404 Not Found'); return;
   }
-
-  // Secure path resolution to prevent directory traversal outside BASE_DIR
   const filePath = path.resolve(BASE_DIR, '.' + reqPath);
-
-  if (!filePath.startsWith(BASE_DIR)) {
-    res.writeHead(403, { 'Content-Type': 'text/plain' });
-    res.end('403 Forbidden');
-    return;
-  }
 
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
@@ -195,7 +193,7 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   const url = `http://localhost:${PORT}`;
   console.log(`\n=============================================================`);
   console.log(`  🏎️  RPA PIT STOP: PRECISION UNDER PRESSURE`);

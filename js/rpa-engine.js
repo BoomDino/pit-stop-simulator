@@ -1,207 +1,165 @@
-/**
- * RPA PIT STOP - Autonomous Robotic Process Automation (RPA) Engine
- * Coordinates the automated pit crew workflow: DETECT -> ANALYSE -> EXECUTE -> VERIFY
- * Provides live telemetry, bot status dispatching, and optional AUTOMATION ASSIST mode.
- */
-
+/** Real UiPath monitoring. Game animations remain local simulations. */
 class RPAEngine {
   constructor(game) {
     this.game = game;
-    this.workflowSteps = ['detect', 'analyse', 'execute', 'verify'];
-    this.currentStepIndex = 0;
-    this.completedTasks = 0;
-    this.failedTasks = 0;
-    this.assistUsed = false;
-    this.assistActive = false;
-    this.assistTargetStage = null;
-
-    this.bots = {
-      1: { id: 'BOT-JACK-F01', name: 'Front Jack Automation', type: 'Pneumatic Actuator', status: 'STANDBY' },
-      2: { id: 'BOT-WHEEL-FL', name: 'FL Torque Station', type: 'High-Torque Optical', status: 'STANDBY' },
-      3: { id: 'BOT-WHEEL-FR', name: 'FR Torque Station', type: 'High-Torque Optical', status: 'STANDBY' },
-      4: { id: 'BOT-WHEEL-RL', name: 'RL Torque Station', type: 'High-Torque Optical', status: 'STANDBY' },
-      5: { id: 'BOT-WHEEL-RR', name: 'RR Torque Station', type: 'High-Torque Optical', status: 'STANDBY' },
-      6: { id: 'BOT-JACK-R02', name: 'Rear Jack & Launch', type: 'Pneumatic Release', status: 'STANDBY' }
-    };
-
+    this.key = 'pitstop_real_events_v1';
+    this.queue = [];
     this.logs = [];
-    this.maxLogs = 8;
+    this.busy = false;
+    this.assistActive = false;
+    try { this.queue = JSON.parse(localStorage.getItem(this.key) || '[]'); } catch (_) {}
+    if (!Array.isArray(this.queue)) this.queue = [];
+    this.queue = this.queue.filter(x => x && x.event && x.event.event_id);
+    document.getElementById('rpa-retry')?.addEventListener('click', () => this.retry());
+    this.checkConnection();
+    this.interval = setInterval(() => { this.checkConnection(); this.pump(); }, 5000);
+    this.pump();
   }
-
+  id() { return crypto.randomUUID(); }
   reset() {
-    this.currentStepIndex = 0;
-    this.completedTasks = 0;
-    this.failedTasks = 0;
-    this.assistUsed = false;
-    this.assistActive = false;
-    this.assistTargetStage = null;
-    this.logs = [];
-
-    Object.values(this.bots).forEach((b) => (b.status = 'STANDBY'));
+    this.runId = this.id();
+    this.playerId = 'player_' + this.id();
+    this.runEvents = [];
+    this.runEnabled = false;
+    this.stageStarted = performance.now();
     this.updateUI();
-    this.log('SYS-INIT', 'RPA Automation Controller initialized. Standby for dock-in.', 'info');
   }
-
   setupAssistStage() {
-    // Pick one random tyre check (stages 2, 3, 4, or 5) for AI Assist demonstration
-    const tyreStages = [2, 3, 4, 5];
-    this.assistTargetStage = tyreStages[Math.floor(Math.random() * tyreStages.length)];
-    this.log('ASSIST-CFG', `Automation Assist armed for Stage ${this.assistTargetStage} (Autonomous Execution).`, 'sync');
+    this.runEnabled = true;
+    // Enabling mid-run queues earlier successful actions, preserving sequence.
+    for (const event of this.runEvents) this.enqueue(event);
+    this.pump();
   }
-
-  onStageStart(stageIndex, stageInfo) {
-    const bot = this.bots[stageIndex];
-    if (bot) {
-      bot.status = 'DETECTING';
-    }
-
-    this.setWorkflowStep(0); // DETECT
-    this.log(bot ? bot.id : 'RPA-CORE', `Acquiring target: ${stageInfo.name}... Optical CV lock established.`, 'sync');
-
-    // Simulate RPA sub-step progression
-    setTimeout(() => {
-      if (this.game.currentStageIndex === stageIndex && this.game.isPlaying) {
-        this.setWorkflowStep(1); // ANALYSE
-        if (bot) bot.status = 'ANALYSING';
-        this.log(bot ? bot.id : 'RPA-CORE', `Analysing rotational sync & torque curve. Ready for precision trigger.`, 'info');
+  onStageStart() { this.stageStarted = performance.now(); }
+  onHit(stage) {
+    const wheels = [null, 'FRONT_LEFT', 'FRONT_RIGHT', 'REAR_LEFT', 'REAR_RIGHT', null];
+    const event = {
+      event_id: this.id(), run_id: this.runId, player_id: this.playerId, stage,
+      event: stage === 1 ? 'DOCK_IN' : stage === 6 ? 'DOCK_OUT' : 'TYRE_REPLACED',
+      wheel_position: wheels[stage - 1], status: 'SUCCESS',
+      player_score: this.game.perfectHits * 100 + this.game.goodHits * 75,
+      execution_time: Math.max(0, (performance.now() - this.stageStarted) / 1000),
+      timestamp: new Date().toISOString()
+    };
+    this.runEvents.push(event);
+    if (this.runEnabled) { this.enqueue(event); this.pump(); }
+    else this.log('GAME', `Stage ${stage} completed locally; automation disabled.`, 'offline');
+  }
+  onMiss(stage) { this.log('GAME', `Stage ${stage} timing miss; no robot event sent.`, 'offline'); }
+  enqueue(event) {
+    if (this.queue.some(x => x.event.event_id === event.event_id)) return;
+    this.queue.push({event, state: 'LOCAL', job_id: null});
+    this.save();
+    this.log('DETECT', `Player completed stage ${event.stage}; queued locally.`, 'pending');
+  }
+  save() {
+    // Retain unresolved entries and the most recent 100 confirmed events.
+    const done = this.queue.filter(x => x.state === 'SUCCESS').slice(-100);
+    this.queue = this.queue.filter(x => x.state !== 'SUCCESS').concat(done);
+    try { localStorage.setItem(this.key, JSON.stringify(this.queue)); }
+    catch (_) { this.log('STORAGE', 'Browser storage unavailable; queue survives only this tab session.', 'failed'); }
+    this.text('rpa-pending', this.queue.filter(x => x.state !== 'SUCCESS').length);
+  }
+  async api(path, options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45000);
+    try {
+      const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
+      const response = await fetch(base + path, {...options, signal: controller.signal});
+      const data = await response.json();
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `Backend HTTP ${response.status}`);
+      return data;
+    } finally { clearTimeout(timeout); }
+  }
+  async checkConnection() {
+    if (this.checking) return;
+    this.checking = true;
+    try {
+      const data = await this.api('/api/uipath/status');
+      this.text('rpa-connection', data.connected ? 'UIPATH CONNECTED' : 'UIPATH DISCONNECTED');
+      this.text('rpa-bot', data.bot_online ? 'BOT ONLINE' : 'BOT OFFLINE');
+      document.getElementById('rpa-connection').dataset.state = data.connected ? 'success' : 'offline';
+      document.getElementById('rpa-bot').dataset.state = data.bot_online ? 'success' : 'offline';
+      this.text('rpa-connection-detail', data.detail);
+    } catch (_) {
+      this.text('rpa-connection', 'UIPATH DISCONNECTED');
+      this.text('rpa-bot', 'BOT OFFLINE');
+      this.text('rpa-connection-detail', 'FastAPI unavailable. Gameplay remains local.');
+      for (const id of ['rpa-bot', 'rpa-connection']) document.getElementById(id).dataset.state = 'offline';
+    } finally { this.checking = false; }
+  }
+  async pump() {
+    if (this.busy) return;
+    // One outstanding stage per run; failures in an old run do not block new runs.
+    const item = this.queue.find(x => ['LOCAL', 'PENDING'].includes(x.state) &&
+      !this.queue.some(y => y.event.run_id === x.event.run_id && y.event.stage < x.event.stage && y.state !== 'SUCCESS'));
+    if (!item) return;
+    this.busy = true;
+    this.text('rpa-task', `${item.event.event} / stage ${item.event.stage}`);
+    this.text('rpa-wheel', item.event.wheel_position || '—');
+    this.text('rpa-job', item.job_id || '—');
+    try {
+      const wasLocal = !item.job_id;
+      const response = item.job_id ? await this.api('/api/uipath/job/' + item.job_id) :
+        await this.api('/api/pitstop/event' + (item.retry ? '?retry=true' : ''), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(item.event)});
+      item.state = response.state;
+      item.job_id = response.job_id;
+      this.text('rpa-job', item.job_id || '—');
+      this.text('rpa-result', response.result || 'Awaiting confirmed robot output');
+      if (wasLocal && item.job_id) {
+        this.log('ANALYSE', 'Backend accepted event and sequence.', 'pending');
+        this.log('EXECUTE', `Orchestrator job ${item.job_id} accepted.`, 'pending');
       }
-    }, 450);
-
-    // If this stage matches our Assist Target and Assist is enabled
-    if (this.game.assistModeEnabled && stageIndex === this.assistTargetStage && !this.assistUsed) {
-      this.triggerAutoAssist(stageIndex);
-    }
-
-    this.updateUI();
-  }
-
-  setWorkflowStep(stepIndex) {
-    this.currentStepIndex = stepIndex;
-    const stepNames = ['detect', 'analyse', 'execute', 'verify'];
-
-    stepNames.forEach((step, idx) => {
-      const el = document.getElementById(`rpa-step-${step}`);
-      if (el) {
-        el.classList.remove('active', 'completed', 'pulse');
-        if (idx < stepIndex) {
-          el.classList.add('completed');
-        } else if (idx === stepIndex) {
-          el.classList.add('active', 'pulse');
-        }
+      if (item.state === 'SUCCESS') this.log('VERIFY', `Job ${item.job_id}: robot confirmed validation and Excel write.`, 'success');
+      if (['FAILED', 'RETRYABLE', 'UNKNOWN'].includes(item.state)) {
+        this.log('VERIFY', response.result || item.state, 'failed');
       }
-    });
-
-    const statusBadge = document.getElementById('rpa-status-badge');
-    if (statusBadge) {
-      const stepUpper = stepNames[stepIndex].toUpperCase();
-      statusBadge.textContent = stepUpper;
-      statusBadge.className = `rpa-badge rpa-badge-${stepNames[stepIndex]}`;
+      this.status(item.state, item.state === 'SUCCESS' ? 'success' : item.state === 'PENDING' ? 'pending' : 'failed');
+    } catch (error) {
+      // Retrying the same event ID is safe; backend will not redispatch an uncertain job.
+      item.state = item.job_id ? 'PENDING' : 'RETRYABLE';
+      this.status('AUTOMATION UNAVAILABLE', 'offline');
+      this.text('rpa-result', error.message + ' — retained for retry');
+      this.log('NETWORK', 'Request failed; gameplay continues. Use Retry / refresh jobs.', 'offline');
+    } finally { this.busy = false; this.save(); }
+    if (item.state === 'SUCCESS') this.pump();
+  }
+  retry() {
+    const hasUnknown = this.queue.some(x => x.state === 'UNKNOWN');
+    for (const item of this.queue) {
+      if (item.state === 'RETRYABLE' || item.state === 'FAILED' || item.state === 'UNKNOWN') {
+        item.retry = item.state === 'FAILED'; item.state = 'LOCAL'; item.job_id = null;
+      }
     }
+    this.save();
+    this.checkConnection();
+    this.pump();
+    if (hasUnknown)
+      this.log('REVIEW', 'Unknown jobs require operator review; no automatic duplicate launch. See UiPath README.', 'failed');
   }
-
-  onHit(stageIndex, hitType) {
-    const bot = this.bots[stageIndex];
-    this.setWorkflowStep(2); // EXECUTE
-    if (bot) bot.status = 'EXECUTING';
-
-    this.log(bot ? bot.id : 'RPA-CORE', `Execution triggered [${hitType.toUpperCase()}]. Nut torque: 460Nm. Seating verification started.`, 'exec');
-
-    setTimeout(() => {
-      this.setWorkflowStep(3); // VERIFY
-      if (bot) bot.status = 'VERIFIED';
-      this.completedTasks++;
-      this.log(bot ? bot.id : 'RPA-CORE', `Lock pin seated. Telemetry verification PASS. Ready for next station.`, 'pass');
-      this.updateUI();
-    }, 350);
+  status(label, state) {
+    this.text('rpa-execution', label);
+    document.getElementById('rpa-execution').dataset.state = state;
   }
-
-  onMiss(stageIndex) {
-    const bot = this.bots[stageIndex];
-    this.failedTasks++;
-    if (bot) bot.status = 'ERROR_FAULT';
-    this.setWorkflowStep(1); // Back to analyse / retry
-    this.log(bot ? bot.id : 'RPA-CORE', `FAULT: Timing signal out of bounds! Wheel gun jammed. Retrying torque cycle (+1.5s penalty).`, 'warn');
-    this.updateUI();
+  text(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+  log(source, message, state = 'offline') {
+    this.logs.unshift({source, message, state, time: new Date().toLocaleTimeString()});
+    this.logs = this.logs.slice(0, 20);
+    const host = document.getElementById('rpa-log-feed');
+    if (!host) return;
+    host.replaceChildren(...this.logs.map(entry => {
+      const line = document.createElement('div');
+      line.dataset.state = entry.state;
+      line.textContent = `${entry.time} ${entry.source} → ${entry.message}`;
+      return line;
+    }));
   }
-
-  triggerAutoAssist(stageIndex) {
-    if (this.assistUsed) return;
-    this.assistActive = true;
-    this.assistUsed = true;
-    this.game.assistModeEnabled = false; // Immediately disable so it never fires on subsequent runs
-
-    const overlay = document.getElementById('assist-active-banner');
-    if (overlay) {
-      overlay.innerHTML = `<div class="assist-pulse-dot"></div><span>🤖 RPA AUTO-PILOT ENGAGED (STAGE ${stageIndex})</span>`;
-      overlay.classList.add('visible');
-    }
-
-    this.log('RPA-AGENT', `>>> AUTONOMOUS ASSIST ENGAGED! Neural timing lock active for Stage ${stageIndex}. <<<`, 'pass');
-    window.soundEngine.playTelemetryBlip();
-
-    // The Assist Bot calculates the moment needle enters sweet spot and auto-strikes
-    this.game.scheduleAssistHit();
-    this.updateUI();
-  }
-
-  log(source, message, type = 'info') {
-    const now = new Date();
-    const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
-    this.logs.unshift({ time: timeStr, source, message, type });
-
-    if (this.logs.length > this.maxLogs) {
-      this.logs.pop();
-    }
-
-    const logContainer = document.getElementById('rpa-log-feed');
-    if (logContainer) {
-      logContainer.innerHTML = this.logs
-        .map(
-          (l) => `
-        <div class="rpa-log-item rpa-log-${l.type}">
-          <span class="rpa-log-time">${l.time}</span>
-          <span class="rpa-log-src">[${l.source}]</span>
-          <span class="rpa-log-msg">${l.message}</span>
-        </div>
-      `
-        )
-        .join('');
-    }
-  }
-
   updateUI() {
-    const completedEl = document.getElementById('rpa-stat-completed');
-    const failedEl = document.getElementById('rpa-stat-failed');
-    const botIdEl = document.getElementById('rpa-active-bot-id');
-    const botDescEl = document.getElementById('rpa-active-bot-desc');
-    const cvConfidenceEl = document.getElementById('rpa-cv-confidence');
-
-    if (completedEl) completedEl.textContent = `${this.completedTasks}/6`;
-    if (failedEl) failedEl.textContent = this.failedTasks;
-
-    const currentBot = this.bots[this.game.currentStageIndex];
-    if (currentBot) {
-      if (botIdEl) botIdEl.textContent = currentBot.id;
-      if (botDescEl) botDescEl.textContent = `${currentBot.name} [${currentBot.status}]`;
-    }
-
-    if (cvConfidenceEl) {
-      const conf = (99.1 + Math.random() * 0.8).toFixed(1);
-      cvConfidenceEl.textContent = `${conf}%`;
-    }
-
-    // Assist button state
-    const assistBtn = document.getElementById('btn-assist-toggle');
-    if (assistBtn) {
-      if (this.game.assistModeEnabled) {
-        assistBtn.classList.add('active');
-        assistBtn.innerHTML = `<span class="icon">🤖</span> RPA ASSIST: <span class="badge-on">READY (STG ${this.assistTargetStage || '?'})</span>`;
-      } else {
-        assistBtn.classList.remove('active');
-        assistBtn.innerHTML = `<span class="icon">🤖</span> RPA ASSIST: <span class="badge-off">OFF</span>`;
-      }
-    }
+    const button = document.getElementById('btn-assist-toggle');
+    if (!button) return;
+    button.classList.toggle('active', this.game.assistModeEnabled);
+    button.setAttribute('aria-pressed', String(this.game.assistModeEnabled));
+    button.title = 'Automation Assist: ' + (this.game.assistModeEnabled ? 'ON' : 'OFF') + '. Manual timing required. Changes during a run apply to the next run.';
   }
 }
-
 window.RPAEngine = RPAEngine;

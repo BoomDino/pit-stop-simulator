@@ -193,6 +193,9 @@ class PitStopGame {
     // Assist Toggle Button
     const assistToggle = document.getElementById('btn-assist-toggle');
     if (assistToggle) {
+      assistToggle.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); e.stopPropagation(); this.toggleAssistMode(); }
+      });
       assistToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         this.toggleAssistMode();
@@ -421,6 +424,8 @@ class PitStopGame {
       strikeBtn.innerHTML = 'STRIKE<span class="btn-sub">LOCK</span>';
     }
 
+    this.runGeneration = (this.runGeneration || 0) + 1;
+
     // Reset stats
     this.currentStageIndex = 1;
     this.startTime = 0;
@@ -469,8 +474,9 @@ class PitStopGame {
 
   toggleAssistMode() {
     this.assistModeEnabled = !this.assistModeEnabled;
-    if (this.assistModeEnabled) {
-      this.rpa.setupAssistStage();
+    if (this.assistModeEnabled && this.isPlaying) this.rpa.setupAssistStage();
+    if (!this.assistModeEnabled && this.isPlaying && this.rpa.runEnabled) {
+      this.rpa.log('CONFIG', 'Current run stays queued to preserve all six stages; assist is off for the next run.', 'offline');
     }
     this.rpa.updateUI();
   }
@@ -483,6 +489,8 @@ class PitStopGame {
       clearTimeout(this.assistTimeoutId);
       this.assistTimeoutId = null;
     }
+
+    this.runGeneration = (this.runGeneration || 0) + 1;
 
     // Reset stats
     this.isPlaying = true;
@@ -710,38 +718,6 @@ class PitStopGame {
     this.updateAccuracyUI();
   }
 
-  scheduleAssistHit() {
-    if (this.assistTimeoutId) {
-      clearTimeout(this.assistTimeoutId);
-      this.assistTimeoutId = null;
-    }
-
-    // When RPA Assist is active, calculate delay until needle enters sweet spot and auto-fire
-    const stage = this.stages[this.currentStageIndex - 1];
-    let degreesToTarget = this.targetCenterAngle - this.needleAngle;
-    if (degreesToTarget < 0) degreesToTarget += 360;
-
-    const delayMs = (degreesToTarget / stage.speed) * 1000;
-
-    this.assistTimeoutId = setTimeout(() => {
-      if (this.isPlaying && this.currentStageIndex === stage.id && this.isProcessingHit === false) {
-        // Snap needle directly into center
-        this.needleAngle = this.targetCenterAngle;
-        if (this.needleEl) {
-          this.needleEl.style.transform = `rotate(${this.needleAngle}deg)`;
-        }
-
-        const assistBanner = document.getElementById('assist-active-banner');
-        if (assistBanner) {
-          assistBanner.classList.remove('visible');
-        }
-
-        this.stageReadyTime = 0; // Bypass grace period for autonomous assist
-        this.handlePlayerAction();
-      }
-    }, Math.max(120, delayMs));
-  }
-
   resolveHit(type, stage, deltaAngle) {
     if (this.assistTimeoutId) {
       clearTimeout(this.assistTimeoutId);
@@ -765,7 +741,9 @@ class PitStopGame {
     this.executeStageAction(stage.id);
 
     // Advance Stage or Complete Game
+    const generation = this.runGeneration;
     setTimeout(() => {
+      if (generation !== this.runGeneration || !this.isPlaying) return;
       if (this.currentStageIndex < 6) {
         this.currentStageIndex++;
         this.setupStageDial(this.currentStageIndex);
@@ -802,7 +780,9 @@ class PitStopGame {
     this.rpa.onMiss(stage.id);
 
     // Allow retry after 550ms
+    const generation = this.runGeneration;
     setTimeout(() => {
+      if (generation !== this.runGeneration || !this.isPlaying) return;
       this.isProcessingHit = false;
       this.stageReadyTime = performance.now() + 200; // Small grace period on retry
       // Slightly re-randomize green zone center for retry challenge

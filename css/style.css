@@ -1460,3 +1460,142 @@ html, body {
   box-shadow: 0 0 25px var(--f1-red-glow);
   margin-top: 15px;
 }
+
+/* Clean top-down pit lane scene */
+.hangar-bay-viewport {
+  background: #4d4b46 url('../assets/pit-road-texture.jpg') center / cover no-repeat;
+  isolation: isolate;
+}
+.hangar-bay-viewport::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 9%, rgba(255, 191, 0, .8) 9.2%, rgba(255, 191, 0, .8) 9.8%, transparent 10%),
+    linear-gradient(90deg, transparent 90%, rgba(255, 191, 0, .8) 90.2%, rgba(255, 191, 0, .8) 90.8%, transparent 91%),
+    linear-gradient(180deg, rgba(8, 12, 18, .12), rgba(8, 12, 18, .24));
+}
+.hangar-floor-grates,
+.hangar-hazard-strip-top,
+.hangar-hazard-strip-bottom,
+.floor-vent-recess,
+.hologram-strike-banner,
+.mag-dock-pad,
+.plasma-thruster-exhaust,
+.robotic-side-arm,
+.space-pit-crew,
+.jack-indicator { display: none !important; }
+.car-container,
+.anti-gravity-car-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(36%, 320px);
+  height: min(92%, 520px);
+  display: block;
+  z-index: 10;
+  transform: translate(-50%, -50%);
+  animation: none;
+}
+.f1-car-svg {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 10px rgba(0, 0, 0, .5));
+  z-index: 2;
+}
+.car-shadow { display: none; }
+.pit-station {
+  position: absolute;
+  z-index: 15;
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(0, 229, 255, .85);
+  border-radius: 50%;
+  background: rgba(0, 229, 255, .12);
+  box-shadow: 0 0 16px rgba(0, 229, 255, .38), inset 0 0 10px rgba(0, 229, 255, .25);
+  pointer-events: none;
+}
+.station-1 { left: 50%; top: 10%; transform: translate(-50%, -50%); }
+.station-2 { left: 17%; top: 27%; transform: translate(-50%, -50%); }
+.station-3 { right: 17%; top: 27%; transform: translate(50%, -50%); }
+.station-4 { left: 17%; top: 75%; transform: translate(-50%, -50%); }
+.station-5 { right: 17%; top: 75%; transform: translate(50%, -50%); }
+.station-6 { left: 50%; top: 91%; transform: translate(-50%, -50%); }
+.station-reticle {
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(0, 229, 255, .9);
+  border-radius: 50%;
+}
+@media (max-width: 800px) {
+  .car-container,
+  .anti-gravity-car-container { width: min(48%, 280px); height: min(82%, 460px); }
+  .pit-station { width: 30px; height: 30px; }
+}
+
+/* User-provided clean pit box backdrop and 25% larger car */
+.hangar-bay-viewport {
+  background: #4b4a48 url('../assets/pit-box-background.png') center / 100% 100% no-repeat;
+}
+.hangar-bay-viewport::before {
+  background: linear-gradient(180deg, rgba(8, 12, 18, .04), rgba(8, 12, 18, .14));
+}
+.car-container,
+.anti-gravity-car-container {
+  width: min(45%, 400px);
+  height: min(115%, 650px);
+}
+.pit-station {
+  width: 48px;
+  height: 48px;
+  border-width: 2.5px;
+}
+.station-reticle { inset: 11px; }
+@media (max-width: 800px) {
+  .car-container,
+  .anti-gravity-car-container { width: min(60%, 350px); height: min(102%, 575px); }
+  .pit-station { width: 38px; height: 38px; }
+  .station-reticle { inset: 9px; }
+}
+
+/* Horizontal car aligned to the left and right pit-box end markers */
+.car-container,
+.anti-gravity-car-container {
+  width: min(86%, 1000px);
+  height: min(80%, 560px);
+}
+.station-1 { left: 91%; top: 50%; transform: translate(-50%, -50%); }
+.station-2 { left: 74%; top: 25%; transform: translate(-50%, -50%); }
+.station-3 { left: 74%; top: 75%; transform: translate(-50%, -50%); }
+.station-4 { left: 26%; top: 25%; transform: translate(-50%, -50%); }
+.station-5 { left: 26%; top: 75%; transform: translate(-50%, -50%); }
+.station-6 { left: 9%; top: 50%; transform: translate(-50%, -50%); }
+@media (max-width: 800px) {
+  .car-container,
+  .anti-gravity-car-container { width: 86%; height: 80%; }
+}
+.station-1 { left: 9%; top: 50%; transform: translate(-50%, -50%); }
+.station-2 { left: 25%; top: 15%; transform: translate(-50%, -50%); }
+.station-3 { left: 25%; top: 85%; transform: translate(-50%, -50%); }
+.station-4 { left: 82%; top: 15%; transform: translate(-50%, -50%); }
+.station-5 { left: 82%; top: 85%; transform: translate(-50%, -50%); }
+.station-6 { left: 91%; top: 50%; transform: translate(-50%, -50%); }
+
+/* Real automation monitor — uses the existing dashboard palette. */
+.real-rpa-panel { margin: 10px 12px; padding: 10px; border: 1px solid var(--border-cyan); background: var(--bg-card); font: 10px var(--font-mono); flex-shrink: 0; }
+.real-rpa-panel p { color: var(--text-muted); margin: 7px 0; line-height: 1.5; }
+.real-rpa-panel dl { display: grid; grid-template-columns: 85px minmax(0, 1fr); gap: 5px; margin: 8px 0; }
+.real-rpa-panel dt { color: var(--text-muted); }
+.real-rpa-panel dd { overflow-wrap: anywhere; user-select: text; }
+.real-rpa-panel [data-state="success"] { color: var(--rpa-green); }
+.real-rpa-panel [data-state="pending"] { color: var(--f1-gold); }
+.real-rpa-panel [data-state="failed"] { color: #ff5566; }
+.real-rpa-panel [data-state="offline"] { color: var(--text-muted); }
+#rpa-log-feed { max-height: 110px; overflow: auto; line-height: 1.5; margin-top: 8px; }
+#rpa-log-feed div { padding: 3px 0; border-bottom: 1px solid #ffffff10; overflow-wrap: anywhere; }

@@ -21,6 +21,20 @@
     "date": "2026-10-30"
   },
   {
+    "name": "MAX VERSTAPPEN",
+    "time": 6537,
+    "accuracy": 100,
+    "perfectHits": 5,
+    "date": "2026-10-31"
+  },
+  {
+    "name": "Lewis Hamiltion",
+    "time": 6621,
+    "accuracy": 100,
+    "perfectHits": 4,
+    "date": "2026-10-31"
+  },
+  {
     "name": "Somansh Sharma",
     "time": 11310,
     "accuracy": 86,
@@ -47,6 +61,13 @@
     "accuracy": 67,
     "perfectHits": 2,
     "date": "2026-10-30"
+  },
+  {
+    "name": "Mishika",
+    "time": 17832,
+    "accuracy": 67,
+    "perfectHits": 2,
+    "date": "2026-10-31"
   },
   {
     "name": "Max V. (Red Bull Sim)",

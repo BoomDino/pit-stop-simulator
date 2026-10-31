@@ -1,126 +1,203 @@
-# 🏎️ RPA PIT STOP: PRECISION UNDER PRESSURE
+# 🏎️ F1 Pit Stop Simulator
 
-> **High-Octane Formula 1 Pit Stop Simulation Powered by Robotic Process Automation (RPA)**  
-> Developed for college tech-fests, interactive engineering stalls, and competitive arcade gaming.
+[![CI](https://github.com/BoomDino/pit-stop-simulator/actions/workflows/ci.yml/badge.svg)](https://github.com/BoomDino/pit-stop-simulator/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![UiPath RPA](https://img.shields.io/badge/UiPath-Orchestrator%20RPA-FA4616?logo=uipath&logoColor=white)](https://www.uipath.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
-
-## 🎮 Overview
-
-**RPA PIT STOP: PRECISION UNDER PRESSURE** puts players in command of an ultra-fast Formula 1 pit stop. Players must complete **six consecutive precision timing challenges** in sequence under high pressure to lift the car, change all four tyres with robotic wheel guns, and launch the car back onto the track.
-
-The game seamlessly combines:
-- **Formula 1 Grand Prix pit lane atmosphere** (authentic aerodynamics, pit crew mechanics, pneumatic jacks, tyre warmers).
-- **Arcade precision timing skill checks** with rotating needles, sweet-spot green zones, and warning margins.
-- **Robotic Process Automation (RPA)** pipeline orchestration (`DETECT → ANALYSE → EXECUTE → VERIFY`), autonomous telemetry agents, live bot logs, and an optional AI Assist mode.
+An interactive, high-performance Formula 1 pit stop timing simulation game. Step into the shoes of an F1 pit crew and execute precision timing challenges across six critical pit stops under extreme pressure — complete with procedural audio synthesis, dynamic particle visuals, local leaderboard persistence, and an optional **UiPath Robotic Process Automation (RPA)** verification backend.
 
 ---
 
-## 🏁 The Six Skill Checks
+## 📸 Overview & Features
 
-Every pit stop consists of exactly six progressive stages:
-
-| Stage | Name | Target Station | Dynamic Difficulty | Robotic Action |
-|:---:|:---|:---|:---|:---|
-| **1** | **DOCK IN** | Front Pneumatic Jack | Speed: 1.0x \| Zone: 64° | Engages pneumatic front & rear jacks to raise chassis |
-| **2** | **FRONT LEFT TYRE** | Front-Left Wheel Hub | Speed: 1.2x \| Zone: 52° | Spins off wheel nut, removes old compound, mounts fresh red slick |
-| **3** | **FRONT RIGHT TYRE** | Front-Right Wheel Hub | Speed: 1.4x \| Zone: 42° | High-torque optical alignment & pneumatic nut torque |
-| **4** | **REAR LEFT TYRE** | Rear-Left Wheel Hub | Speed: 1.7x \| Zone: 36° | High-velocity torque wrench locking rear drive axle |
-| **5** | **REAR RIGHT TYRE** | Rear-Right Wheel Hub | Speed: 2.1x \| Zone: 28° | Maximum tyre difficulty; ultra-narrow tolerance zone |
-| **6** | **DOCK OUT** | Rear Jack & Release | Speed: 2.4x \| Zone: 24° | Releases jacks, flashes green gantry lights, triggers V6 burnout launch! |
+- ⏱️ **Precision Timing Challenges**: Face 6 sequential pit stop procedures with dynamic rotating dials, variable target zones, and sub-millisecond reaction tracking.
+- 🔊 **Procedural Web Audio Engine**: Zero external audio files required! Synthesizes realistic wheel gun impacts, pneumatic whines, air jack lifts, engine idle revs, and countdown beeps using the native Web Audio API.
+- ✨ **Dynamic Visual Effects & Canvas Particles**: Sparks, smoke bursts, wrench rotational animations, and realistic road textures.
+- 🏆 **Local Leaderboard**: Stores and ranks your fastest pit stop times, accuracy ratings, and perfect hit counts in a persistent JSON database.
+- 📊 **Live Telemetry & Diagnostics**: Real-time sensor readout simulations (pneumatic gun pressure, wheel nut torque, tire temperatures).
+- 🤖 **Enterprise UiPath RPA Integration (Optional)**: Complete workflow (`PitStopAutomation.xaml`) connecting to UiPath Orchestrator to validate wheel sequences and audit pit events directly into Excel (`PitStop_Execution_Log.xlsx`).
+- 🛡️ **Secure Architecture**: Static file server enforces strict path allowlisting to safeguard credentials, database files, and system paths.
+- 🚀 **Deploy-Ready**: Native configuration for one-click deployment on Render via `render.yaml`.
 
 ---
 
-## 🎯 Precision Timing Mechanic
+## 🕹️ Game Mechanics: The 6 Pit Stop Stages
 
-The core mechanic is an interactive circular neon gauge:
-- **Rotating Needle**: Rotates smoothly at 60 FPS using `performance.now()`.
-- **Green Success Zone**: Highlights the valid window.
-- **Center Sweet Spot (Cyan/White Marker)**: ±15% sweet-spot center of the green zone triggers a **PERFECT** hit!
-- **Yellow Boundary Zones**: Flanking borders trigger a **GOOD** hit.
-- **Red Zones**: Needle outside triggers a **MISS** (Mechanical Failure).
+Each run tests your reflexes across all corners of the Formula 1 car:
 
-### Controls & Shortcuts
-- <kbd>SPACEBAR</kbd> or **Click Dial**: Strike / Lock timing check.
-- <kbd>R</kbd> or **🔄 Reset Run**: Instantly aborts and restarts pit stop from Stage 1.
-- **🤖 RPA ASSIST**: Toggles autonomous AI bot takeover for 1 random tyre check.
+| Stage # | Operation | Description | Target Zone |
+| :---: | :--- | :--- | :--- |
+| **1** | **Front Left Wheel (FL)** | Remove old compound, fit fresh softs, torque wheel nut | Tight precision window |
+| **2** | **Front Right Wheel (FR)** | Right-side front crew execution and verification | Dynamic sweep zone |
+| **3** | **Rear Left Wheel (RL)** | Rear axle gunner timing under heavy engine heat | High-speed rotation dial |
+| **4** | **Rear Right Wheel (RR)** | Final wheel change completion | Precision lock-in |
+| **5** | **Front Wing Flap Adjust** | Aerodynamic downforce tuning with torque wrench | Calibrated angle target |
+| **6** | **Lollipop / Car Release** | Drop the jacks and signal green light to launch the racer | Instant reaction check |
 
-### Scoring & Penalties
-- **PERFECT**: Maximum precision chime, particle spark shockwave, optimal cycle time.
-- **GOOD**: Reliable confirmation tone, green telemetry verification.
-- **MISS**: Mechanical failure! Triggers a **+1.500s penalty**, warning buzzer, screen shake, and requires retrying the current station before advancing. Timer never resets!
+> **Controls**: Press **Spacebar** or click the **Dial Action Button** when the sweeping needle hits the green target zone. Missed attempts incur time penalties!
 
 ---
 
-## 🤖 RPA Integration
+## 🏗️ Architecture
 
-RPA is not just a cosmetic theme—it monitors and orchestrates the entire pit stop workflow:
+```mermaid
+graph TD
+    User["🏎️ Player Browser"]
+    NodeServer["⚡ Node.js Server (Port 3000)<br/>- Static Files<br/>- Local Leaderboard<br/>- API Proxy (/api/*)"]
+    FastAPIServer["🐍 FastAPI Backend (Port 8000)<br/>- Event Service<br/>- SQLite Event History<br/>- Orchestrator Client"]
+    UiPath["🤖 UiPath Orchestrator / Robot<br/>- PitStopAutomation.xaml<br/>- ValidateAndRecord.vb<br/>- PitStop_Execution_Log.xlsx"]
 
-1. **4-Stage Pipeline**:
-   - `DETECT`: Optical LiDAR / Computer Vision scan locks onto the wheel hub `[CV_CONFIDENCE: 99.4%]`.
-   - `ANALYSE`: Signal telemetry engine calculates rotational speed, angle delta, and torque requirements.
-   - `EXECUTE`: Simulated high-torque pneumatic actuator torques wheel nut to 460 Nm.
-   - `VERIFY`: Locking pin seating verification and telemetry handshake pass.
-2. **Active RPA Bots**:
-   - `BOT-JACK-F01`: Pneumatic Chassis Lift Bot
-   - `BOT-WHEEL-FL`: Front-Left Torque Station
-   - `BOT-WHEEL-FR`: Front-Right Torque Station
-   - `BOT-WHEEL-RL`: Rear-Left Torque Station
-   - `BOT-WHEEL-RR`: Rear-Right Torque Station
-   - `BOT-JACK-R02`: Rear Pneumatic Release & Telemetry Launch Bot
-3. **Live Terminal Feed**:
-   - Real-time stream of robotic logs with millisecond timestamps and status codes (`[INFO]`, `[SYNC]`, `[EXEC]`, `[PASS]`, `[WARN]`).
-4. **Autonomous AI Assist Mode**:
-   - When enabled via the **🤖 RPA ASSIST** button, the RPA Bot autonomously executes one randomly chosen tyre check with predictive AI lock-on and mathematical perfection.
+    User -->|Plays Game / Requests Assets| NodeServer
+    User -->|Submits Score / Reads Rankings| NodeServer
+    NodeServer -->|Proxies /api/pitstop/* & /api/uipath/*| FastAPIServer
+    FastAPIServer -->|Triggers Unattended Jobs| UiPath
+    FastAPIServer -->|Persists Run Events| SQLite[(SQLite DB)]
+    UiPath -->|Appends Audit Row| ExcelFile[(Excel Log)]
+```
 
 ---
 
-## 🔊 Procedural Web Audio Engine
+## 🚀 Quick Start (Local Run)
 
-Uses the **HTML5 Web Audio API** for 100% synthesized procedural sound effects without relying on external MP3 downloads:
-- Realistic V6 turbo hybrid engine deceleration & tyre screech entering pit lane.
-- Heavy pneumatic jack lift hiss and mechanical chassis clunk.
-- High-rpm pneumatic wheel gun electric motor whine and rapid impact ratcheting.
-- Sci-fi harmonic chimes for perfect hits.
-- Mechanical fault alarm buzzer and metallic drop clatter.
-- High-octane V6 turbo burnout acceleration and tyre spin doppler sound!
-- Results fanfare chords.
-- Full volume and mute toggles.
+The game runs 100% locally with Node.js and **does not require Python or UiPath** to play!
 
----
+### Prerequisites
+- [Node.js](https://nodejs.org/) v18.0.0 or higher.
 
-## 🏆 Leaderboard & Racing Ranks
-
-Persisted in `localStorage` across refreshes:
-- **PIT STOP MASTER**: Total time < 24s and Accuracy ≥ 85% (F1 World Championship tier).
-- **PRECISION DRIVER**: Total time < 40s and Accuracy ≥ 70%.
-- **ROOKIE PIT CREW**: Completed with under 4 misses.
-- **MECHANICAL DISASTER**: Multiple cross-threaded wheel nuts. Back to the sim!
-
-Leaderboard records Player Name, Total Time (millisecond precision), Accuracy %, Number of Perfect Hits, and Date.
-
----
-
-## 🚀 Quick Start / How to Run
-
-### Method 1: Direct Browser Launch (Easiest)
-Simply double-click or open `index.html` in **Google Chrome**, **Microsoft Edge**, **Opera**, or **Firefox**. No installation or internet access needed!
-
-### Method 2: One-Click Windows Batch Runner
-Double-click `start-game.bat` in the project folder. It will launch the local HTTP server or open the game in your browser automatically.
-
-### Method 3: Node.js Server
-Run in command prompt / terminal:
+### 1. Clone the Repository
 ```bash
-agy-node server.js
+git clone https://github.com/BoomDino/pit-stop-simulator.git
+cd pit-stop-simulator
+```
+
+### 2. Start the Server
+```bash
+npm start
 # or: node server.js
 ```
-Then visit `http://localhost:3000` in your browser.
+
+### 3. Open in Browser
+Visit **`http://localhost:3000`** in your favorite browser.
 
 ---
 
-## 🎪 College Tech-Fest Stall Tips
+## 🐍 Optional: Python FastAPI Backend
 
-- **Dual Control**: Connect an arcade button, USB gamepad mapped to `Spacebar`, or use a large touchscreen laptop/tablet!
-- **Sound System**: Plug in external desktop speakers or a Bluetooth soundbar—the synthesized pneumatic wheel guns and F1 burnout engine sounds will draw massive crowds to your stall!
-- **High-Score Competition**: Keep the Leaderboard open between players to spark competition for the "Fastest Pit Crew on Campus"!
+To enable server-side event tracking and telemetry reconciliation:
+
+1. **Create and activate a virtual environment**:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+2. **Install backend dependencies**:
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+
+3. **Configure environment**:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
+
+4. **Launch FastAPI**:
+   ```bash
+   python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+   ```
+
+`server.js` will automatically detect the FastAPI backend on port 8000 and proxy `/api/pitstop/*` and `/api/uipath/*` calls.
+
+---
+
+## 🤖 Optional: UiPath RPA Integration
+
+The project includes an enterprise automation package for UiPath Orchestrator:
+- **Workflow**: [`uipath/PitStopAutomation.xaml`](uipath/PitStopAutomation.xaml)
+- **Validation Logic**: [`uipath/ValidateAndRecord.vb`](uipath/ValidateAndRecord.vb)
+- **Audit Template**: [`uipath/PitStop_Execution_Log.xlsx`](uipath/PitStop_Execution_Log.xlsx)
+
+### Features:
+- Dispatches Unattended Robot jobs via Orchestrator REST API (`StartJobs`).
+- Independent verification of wheel sequences (rejects out-of-order stage completion).
+- Atomic OOXML Excel log recording using .NET without requiring Microsoft Office installed on the robot machine.
+- Deduplication of events ensuring robust fault recovery.
+
+For complete Orchestrator configuration, robot permissions, and environment setup, see the **[UiPath Setup Guide](uipath/README.md)**.
+
+---
+
+## 🧪 Testing
+
+The repository features comprehensive automated test suites covering both frontend logic and backend services:
+
+```bash
+# Run all tests (Node.js + Python)
+npm test
+
+# Run frontend & static server tests only
+npm run test:node
+
+# Run Python FastAPI & test doubles suite
+npm run test:python
+```
+
+---
+
+## ☁️ Deployment on Render
+
+This repository includes a [`render.yaml`](render.yaml) blueprint:
+1. Connect this GitHub repository to [Render](https://render.com).
+2. Create a new Web Service using the **Blueprint**.
+3. Render automatically provisions the Node.js frontend and FastAPI backend with a persistent disk for leaderboard rankings and SQLite logs.
+
+---
+
+## 📁 Project Structure
+
+```text
+pit-stop-simulator/
+├── assets/                  # High-resolution car cutout, road texture, and background
+├── backend/                 # Optional Python FastAPI service
+│   ├── config.py            # Environment configuration & OAuth settings
+│   ├── database.py          # SQLite audit store
+│   ├── event_service.py     # Stage progression & robot job orchestration
+│   ├── main.py              # FastAPI application & route endpoints
+│   ├── reconcile.py         # Operator recovery CLI
+│   ├── requirements.txt     # Python dependencies
+│   └── uipath_service.py    # UiPath Cloud & on-prem OAuth client
+├── css/                     # Styling, responsive layout & monitor UI
+├── js/                      # Frontend game engine
+│   ├── audio.js             # Procedural Web Audio API sound generator
+│   ├── game.js              # State machine, timing dial, and stage logic
+│   ├── leaderboard.js       # Score formatting and rankings UI
+│   ├── particles.js         # Canvas spark & smoke particle animations
+│   └── rpa-engine.js        # RPA communication & telemetry state monitor
+├── tests/                   # Automated test suites
+│   ├── frontend.test.cjs    # Stage logic & offline recovery tests
+│   ├── live_smoke.py        # Live Orchestrator smoke tester
+│   ├── server.test.cjs      # Static server & security allowlist tests
+│   └── test_backend.py      # FastAPI ASGI in-process unit tests
+├── uipath/                  # UiPath RPA assets
+│   ├── PitStopAutomation.xaml      # Main workflow file
+│   ├── PitStop_Execution_Log.xlsx  # Excel audit workbook template
+│   ├── ValidateAndRecord.vb        # Embedded .NET code source
+│   └── README.md                   # Complete UiPath setup instructions
+├── .github/workflows/       # GitHub Actions CI workflow
+├── index.html               # Main game interface
+├── leaderboard.json         # Local persistent score store
+├── package.json             # Node package definition & scripts
+├── render.yaml              # Render deployment blueprint
+├── server.js                # Static web server & API proxy
+└── start-game.bat           # Quick launcher for Windows users
+```
+
+---
+
+## 📄 License
+
+This project is open-source under the [MIT License](LICENSE).
+Developed with ❤️ by [BoomDino](https://github.com/BoomDino).

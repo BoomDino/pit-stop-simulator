@@ -1,0 +1,29 @@
+{
+  "name": "pit-stop-simulator",
+  "version": "1.0.0",
+  "description": "F1 Pit Stop Simulator - High-performance Formula 1 pit stop timing simulation game with Node.js server and optional FastAPI / UiPath RPA integration.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "npm run test:node && npm run test:python",
+    "test:node": "node tests/server.test.cjs && node tests/frontend.test.cjs",
+    "test:python": "python -m unittest discover -s tests 2>/dev/null || .venv/bin/python -m unittest discover -s tests"
+  },
+  "keywords": [
+    "f1",
+    "formula1",
+    "pit-stop",
+    "simulator",
+    "game",
+    "rpa",
+    "uipath",
+    "fastapi",
+    "nodejs"
+  ],
+  "author": "BoomDino",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

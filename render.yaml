@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: f1-pit-stop-simulator
+    runtime: node
+    buildCommand: python3 -m venv .venv && .venv/bin/pip install -r backend/requirements.txt
+    startCommand: sh -c '.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000 & node server.js'
+    healthCheckPath: /
+    disk:
+      name: pit-stop-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: FASTAPI_PORT
+        value: "8000"
+      - key: DATABASE_PATH
+        value: /var/data/pitstop.sqlite3
+      - key: LEADERBOARD_PATH
+        value: /var/data/leaderboard.json
