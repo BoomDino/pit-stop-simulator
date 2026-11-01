@@ -859,18 +859,31 @@ html, body {
    -------------------------------------------------------------------------- */
 .bottom-timing-deck {
   height: 145px;
+  overflow: visible;
   background: rgba(8, 13, 22, 0.95);
   border-top: 1.5px solid var(--border-cyan);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 18px;
+  justify-content: center;
+  padding: 20px 18px;
   position: relative;
   z-index: 20;
 }
 
 .timing-desc-block {
-  flex: 1;
+  position: absolute;
+  left: 18px;
+  width: calc(50% - 181px);
+}
+
+@media (max-width: 760px) {
+  .bottom-timing-deck {
+    padding: 10px 18px;
+  }
+
+  .timing-desc-block {
+    width: calc(50% - 163px);
+  }
 }
 
 .stage-badge-glowing {
@@ -915,6 +928,8 @@ html, body {
 /* 3D Tachometer Dial Container */
 .tachometer-3d-wrapper {
   position: relative;
+  flex-shrink: 0;
+  transform: translateY(-85px) scale(2);
   width: 145px;
   height: 145px;
   display: flex;
