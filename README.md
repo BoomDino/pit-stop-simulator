@@ -62,7 +62,7 @@ graph TD
 
 ## 🚀 Quick Start (Local Run)
 
-The game runs 100% locally with Node.js and **does not require Python or UiPath** to play!
+The game runs 100% locally with Node.js and **does not require Python or UiPath** to play!!
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) v18.0.0 or higher.
